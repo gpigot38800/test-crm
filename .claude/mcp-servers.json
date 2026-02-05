@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "ctx7sk-665c7177-131f-4edf-ac66-31b0d1e7a87d"],
+      "description": "Up-to-date code documentation for LLMs - provides version-specific docs and examples"
+    }
+  }
+}
