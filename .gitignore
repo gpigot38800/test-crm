@@ -1,0 +1,53 @@
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Fichiers de test
+coverage/
+
+# Production
+build/
+dist/
+*.local
+
+# Environnement (EXCLURE)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Éditeur
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Cache Vite
+.vite/
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.cache/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# INCLURE .claude/ (configuration Claude Code)
+# Le dossier .claude/ sera inclus dans le repo
