@@ -15,6 +15,8 @@ from database.connection import init_database
 from database.crud import get_all_deals
 from components.csv_uploader import display_csv_uploader
 from components.kpi_cards import display_kpi_cards
+from components.sector_analysis import display_sector_analysis
+from components.deadline_table import display_deadline_management
 
 
 def main():
@@ -77,6 +79,16 @@ def main():
 
     st.markdown("---")
 
+    # Section: Analyse par Secteur
+    display_sector_analysis(deals_df)
+
+    st.markdown("---")
+
+    # Section: Gestion des Échéances
+    display_deadline_management(deals_df)
+
+    st.markdown("---")
+
     # Section: Aperçu des deals
     st.subheader("🗂️ Aperçu des Deals")
 
@@ -86,7 +98,7 @@ def main():
             'client', 'statut', 'montant_brut', 'probabilite',
             'valeur_ponderee', 'secteur', 'date_echeance', 'assignee'
         ]],
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             'client': st.column_config.TextColumn('Client', width='medium'),
@@ -120,7 +132,7 @@ def main():
 
     # Footer
     st.markdown("---")
-    st.caption("Dashboard CRM MVP - Phase 1 | Import CSV & Pipeline Pondéré")
+    st.caption("Dashboard CRM MVP - Phase 1 ✅ | Import CSV • Pipeline Pondéré • Analyse Secteur • Gestion Échéances")
 
 
 @st.cache_data(ttl=300)

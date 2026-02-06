@@ -208,4 +208,4 @@ def _display_error_report(errors: List[ValidationError]):
             })
 
         error_df = pd.DataFrame(error_data)
-        st.dataframe(error_df, use_container_width=True, hide_index=True)
+        st.dataframe(error_df, width='stretch', hide_index=True)
