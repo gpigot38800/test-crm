@@ -51,3 +51,21 @@ Thumbs.db
 
 # INCLURE .claude/ (configuration Claude Code)
 # Le dossier .claude/ sera inclus dans le repo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# SQLite Database
+crm.db
+crm.db-journal
+crm.db-shm
+crm.db-wal
+*.sqlite
+*.sqlite3
+
+# Fichiers temporaires Windows
+nul
