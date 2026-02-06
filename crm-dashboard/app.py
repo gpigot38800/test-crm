@@ -25,9 +25,9 @@ app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB max pour upload CS
 with app.app_context():
     try:
         init_database()
-        print("✓ Base de données initialisée")
+        print("[OK] Base de donnees initialisee")
     except Exception as e:
-        print(f"✗ Erreur lors de l'initialisation de la base de données: {str(e)}")
+        print(f"[ERREUR] Initialisation base de donnees: {str(e)}")
         sys.exit(1)
 
 # Route principale

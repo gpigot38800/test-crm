@@ -19,4 +19,4 @@ def register_blueprints(app):
     # app.register_blueprint(analytics_bp, url_prefix='/api')
     # app.register_blueprint(upload_bp, url_prefix='/api')
 
-    print("✓ Blueprints API enregistrés")
+    print("[OK] Blueprints API enregistres")
