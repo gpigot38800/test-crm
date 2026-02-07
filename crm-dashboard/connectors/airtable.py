@@ -5,7 +5,7 @@ Utilise requests directement (compatible Python 3.14).
 
 import logging
 import time
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import requests
 
@@ -18,6 +18,10 @@ AIRTABLE_API_BASE = "https://api.airtable.com/v0"
 
 
 class AirtableConnector(BaseConnector):
+
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)
+        self._record_name_cache = None
 
     def _headers(self):
         return {
@@ -45,6 +49,67 @@ class AirtableConnector(BaseConnector):
                 break
         return records
 
+    def _build_record_name_cache(self) -> Dict[str, str]:
+        """Construit un cache ID → nom pour résoudre les linked records."""
+        if self._record_name_cache is not None:
+            return self._record_name_cache
+
+        self._record_name_cache = {}
+        try:
+            resp = requests.get(
+                f"{AIRTABLE_API_BASE}/meta/bases/{self.base_id}/tables",
+                headers=self._headers()
+            )
+            resp.raise_for_status()
+            tables = resp.json().get('tables', [])
+
+            for table in tables:
+                table_name = table['name']
+                if table_name == self.table_name:
+                    continue
+                fields = table.get('fields', [])
+                if not fields:
+                    continue
+                primary_field = fields[0]['name']
+
+                offset = None
+                while True:
+                    params = {}
+                    if offset:
+                        params['offset'] = offset
+                    r = requests.get(
+                        f"{AIRTABLE_API_BASE}/{self.base_id}/{requests.utils.quote(table_name)}",
+                        headers=self._headers(), params=params
+                    )
+                    if r.status_code != 200:
+                        break
+                    data = r.json()
+                    for rec in data.get('records', []):
+                        name = rec.get('fields', {}).get(primary_field)
+                        if name:
+                            self._record_name_cache[rec['id']] = str(name)
+                    offset = data.get('offset')
+                    if not offset:
+                        break
+                    time.sleep(0.2)
+                time.sleep(0.2)
+        except Exception as e:
+            logger.warning(f"Impossible de résoudre les linked records: {e}")
+
+        return self._record_name_cache
+
+    def _clean_field_value(self, value: Any, name_cache: Dict[str, str]) -> Any:
+        """Nettoie une valeur Airtable : convertit les listes et résout les IDs."""
+        if not isinstance(value, list):
+            return value
+        resolved = []
+        for item in value:
+            if isinstance(item, str) and item.startswith('rec'):
+                resolved.append(name_cache.get(item, item))
+            else:
+                resolved.append(str(item))
+        return ', '.join(resolved)
+
     def test_connection(self) -> Dict[str, Any]:
         try:
             records = self._get_all_records()
@@ -66,6 +131,7 @@ class AirtableConnector(BaseConnector):
 
     def fetch_records(self, field_mapping: Dict[str, str]) -> List[Dict[str, Any]]:
         raw_records = self._get_all_records()
+        name_cache = self._build_record_name_cache()
 
         deals = []
         for record in raw_records:
@@ -73,7 +139,8 @@ class AirtableConnector(BaseConnector):
 
             flat_record = {}
             for crm_field, external_field in field_mapping.items():
-                flat_record[external_field] = fields.get(external_field)
+                value = fields.get(external_field)
+                flat_record[external_field] = self._clean_field_value(value, name_cache)
 
             deal = convert_external_to_crm(flat_record, field_mapping)
 
