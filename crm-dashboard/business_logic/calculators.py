@@ -5,8 +5,9 @@ Calcule les probabilités, valeurs pondérées et le pipeline total.
 
 import pandas as pd
 from typing import Union, List, Dict, Any
+from datetime import datetime, timedelta
 import logging
-from utils.constants import PROBABILITY_MAP
+from utils.constants import PROBABILITY_MAP, COLD_DEAL_THRESHOLD_DAYS, WON_STATUSES
 
 # Configuration du logger
 logger = logging.getLogger(__name__)
@@ -116,3 +117,118 @@ def calculate_performance_by_assignee(deals_df: pd.DataFrame) -> List[Dict[str, 
     results.sort(key=lambda x: x['pipeline_pondere'], reverse=True)
 
     return results
+
+
+def calculate_sales_velocity(deals_df: pd.DataFrame) -> float:
+    """
+    Calcule la durée moyenne de conversion en jours pour les deals "Gagné".
+    Basé sur updated_at - created_at.
+
+    Returns:
+        float: Durée moyenne en jours, 0 si aucun deal gagné
+    """
+    if deals_df.empty:
+        return 0.0
+
+    df = deals_df.copy()
+    won = df[df['statut'].str.lower().str.strip().isin(WON_STATUSES)]
+
+    if won.empty:
+        return 0.0
+
+    try:
+        created = pd.to_datetime(won['created_at'], errors='coerce')
+        updated = pd.to_datetime(won['updated_at'], errors='coerce')
+        durations = (updated - created).dt.total_seconds() / 86400  # en jours
+        durations = durations.dropna()
+        durations = durations[durations >= 0]
+
+        if durations.empty:
+            return 0.0
+
+        return round(durations.mean(), 1)
+    except Exception as e:
+        logger.warning(f"Erreur calcul vélocité: {e}")
+        return 0.0
+
+
+def calculate_velocity_by_group(deals_df: pd.DataFrame, group_col: str) -> Dict[str, float]:
+    """
+    Ventile la vitesse de vente par groupe (secteur ou commercial).
+
+    Returns:
+        Dict mapping groupe → durée moyenne en jours
+    """
+    if deals_df.empty:
+        return {}
+
+    df = deals_df.copy()
+    won = df[df['statut'].str.lower().str.strip().isin(WON_STATUSES)]
+
+    if won.empty or group_col not in won.columns:
+        return {}
+
+    try:
+        won = won.copy()
+        won['created_at_dt'] = pd.to_datetime(won['created_at'], errors='coerce')
+        won['updated_at_dt'] = pd.to_datetime(won['updated_at'], errors='coerce')
+        won['duration_days'] = (won['updated_at_dt'] - won['created_at_dt']).dt.total_seconds() / 86400
+        won = won.dropna(subset=['duration_days'])
+        won = won[won['duration_days'] >= 0]
+
+        # Filtrer les groupes vides
+        won_filtered = won[won[group_col].notna() & (won[group_col] != '')]
+
+        if won_filtered.empty:
+            return {}
+
+        result = {}
+        for group, group_df in won_filtered.groupby(group_col):
+            result[group] = round(group_df['duration_days'].mean(), 1)
+
+        return result
+    except Exception as e:
+        logger.warning(f"Erreur calcul vélocité par {group_col}: {e}")
+        return {}
+
+
+def get_cold_deals(deals_df: pd.DataFrame, threshold_days: int = COLD_DEAL_THRESHOLD_DAYS) -> pd.DataFrame:
+    """
+    Identifie les deals "froids" : inactifs depuis plus de threshold_days
+    et dont le statut n'est pas "Gagné".
+
+    Returns:
+        DataFrame avec colonne supplémentaire jours_inactifs
+    """
+    if deals_df.empty:
+        return pd.DataFrame()
+
+    df = deals_df.copy()
+
+    # Exclure les deals gagnés
+    df_active = df[~df['statut'].str.lower().str.strip().isin(WON_STATUSES)]
+
+    if df_active.empty:
+        return pd.DataFrame()
+
+    try:
+        now = datetime.now()
+        df_active = df_active.copy()
+        df_active['updated_at_dt'] = pd.to_datetime(df_active['updated_at'], errors='coerce')
+        df_active = df_active.dropna(subset=['updated_at_dt'])
+
+        threshold_date = now - timedelta(days=threshold_days)
+        cold = df_active[df_active['updated_at_dt'] < threshold_date].copy()
+
+        if cold.empty:
+            return pd.DataFrame()
+
+        cold['jours_inactifs'] = cold['updated_at_dt'].apply(
+            lambda x: (now - x).days
+        )
+        cold = cold.sort_values('jours_inactifs', ascending=False)
+
+        return cold
+    except Exception as e:
+        logger.warning(f"Erreur détection deals froids: {e}")
+        return pd.DataFrame()

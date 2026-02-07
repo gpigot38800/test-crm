@@ -6,7 +6,10 @@ GET /api/analytics/deadlines, GET /api/analytics/performance, GET /api/filters/o
 
 from flask import Blueprint, jsonify, request
 from database.crud import get_all_deals, get_filtered_deals, get_filter_options
-from business_logic.calculators import calculate_total_pipeline, calculate_performance_by_assignee
+from business_logic.calculators import (
+    calculate_total_pipeline, calculate_performance_by_assignee,
+    calculate_sales_velocity, calculate_velocity_by_group, get_cold_deals
+)
 from utils.formatters import format_currency
 from datetime import datetime, timedelta
 import pandas as pd
@@ -54,7 +57,10 @@ def get_kpis():
                 "panier_moyen_formatted": "0 €",
                 "nombre_deals": 0,
                 "deals_gagnes": 0,
-                "taux_conversion": 0
+                "taux_conversion": 0,
+                "vitesse_vente_moyenne": 0,
+                "vitesse_vente_formatted": "N/A",
+                "nb_cold_deals": 0
             }, "error": None})
 
         pipeline = calculate_total_pipeline(df)
@@ -63,6 +69,17 @@ def get_kpis():
         deals_gagnes = len(df[df['statut'].str.lower().str.strip().isin(['gagné', 'gagné - en cours'])])
         taux_conversion = round((deals_gagnes / nombre_deals) * 100, 1) if nombre_deals > 0 else 0
 
+        # Phase 3 V2 : vitesse de vente et deals froids
+        vitesse_vente = calculate_sales_velocity(df)
+        cold_df = get_cold_deals(df)
+        nb_cold_deals = len(cold_df)
+
+        # Distinguer "0 jours" (deals gagnés existent) de "N/A" (aucun deal gagné)
+        if deals_gagnes > 0:
+            vitesse_formatted = f"{vitesse_vente} jours" if vitesse_vente > 0 else "< 1 jour"
+        else:
+            vitesse_formatted = "N/A"
+
         return jsonify({"success": True, "data": {
             "pipeline_pondere": pipeline,
             "pipeline_pondere_formatted": format_currency(pipeline),
@@ -70,7 +87,10 @@ def get_kpis():
             "panier_moyen_formatted": format_currency(panier_moyen),
             "nombre_deals": nombre_deals,
             "deals_gagnes": deals_gagnes,
-            "taux_conversion": taux_conversion
+            "taux_conversion": taux_conversion,
+            "vitesse_vente_moyenne": vitesse_vente,
+            "vitesse_vente_formatted": vitesse_formatted,
+            "nb_cold_deals": nb_cold_deals
         }, "error": None})
 
     except Exception as e:
@@ -288,6 +308,92 @@ def get_performance():
             "performance": performance,
             "chart_data": chart_data,
             "stats": {"nb_commerciaux": len(performance)}
+        }, "error": None})
+
+    except Exception as e:
+        return jsonify({"success": False, "data": None, "error": str(e)}), 500
+
+
+@analytics_bp.route('/analytics/velocity', methods=['GET'])
+def get_velocity():
+    """GET /api/analytics/velocity - Vitesse de vente (avec filtres optionnels)"""
+    try:
+        df = _get_deals()
+
+        if df.empty:
+            return jsonify({"success": True, "data": {
+                "vitesse_moyenne_jours": 0,
+                "vitesse_moyenne_formatted": "N/A",
+                "velocity_by_sector": {},
+                "velocity_by_assignee": {}
+            }, "error": None})
+
+        vitesse_moyenne = calculate_sales_velocity(df)
+        velocity_by_sector = calculate_velocity_by_group(df, 'secteur')
+        velocity_by_assignee = calculate_velocity_by_group(df, 'assignee')
+
+        # Compter les deals gagnés pour distinguer "0 jours" de "N/A"
+        deals_gagnes = len(df[df['statut'].str.lower().str.strip().isin(['gagné', 'gagné - en cours'])])
+        if deals_gagnes > 0:
+            vitesse_formatted = f"{vitesse_moyenne} jours" if vitesse_moyenne > 0 else "< 1 jour"
+        else:
+            vitesse_formatted = "N/A"
+
+        return jsonify({"success": True, "data": {
+            "vitesse_moyenne_jours": vitesse_moyenne,
+            "vitesse_moyenne_formatted": vitesse_formatted,
+            "has_won_deals": deals_gagnes > 0,
+            "velocity_by_sector": velocity_by_sector,
+            "velocity_by_assignee": velocity_by_assignee
+        }, "error": None})
+
+    except Exception as e:
+        return jsonify({"success": False, "data": None, "error": str(e)}), 500
+
+
+@analytics_bp.route('/analytics/cold-deals', methods=['GET'])
+def get_cold_deals_endpoint():
+    """GET /api/analytics/cold-deals - Deals froids (avec filtres optionnels)"""
+    try:
+        df = _get_deals()
+
+        if df.empty:
+            return jsonify({"success": True, "data": {
+                "cold_deals": [],
+                "stats": {"nb_cold_deals": 0, "montant_total_cold": 0, "montant_total_cold_formatted": "0 €"}
+            }, "error": None})
+
+        cold_df = get_cold_deals(df)
+
+        if cold_df.empty:
+            return jsonify({"success": True, "data": {
+                "cold_deals": [],
+                "stats": {"nb_cold_deals": 0, "montant_total_cold": 0, "montant_total_cold_formatted": "0 €"}
+            }, "error": None})
+
+        cold_deals = []
+        for _, row in cold_df.iterrows():
+            cold_deals.append({
+                "id": int(row['id']) if 'id' in row else None,
+                "client": row.get('client', ''),
+                "statut": row.get('statut', ''),
+                "montant_brut": float(row.get('montant_brut', 0)),
+                "montant_formatted": format_currency(float(row.get('montant_brut', 0))),
+                "secteur": row.get('secteur', '') or '',
+                "assignee": row.get('assignee', '') or '',
+                "date_echeance": str(row.get('date_echeance', '')) if row.get('date_echeance') else '',
+                "jours_inactifs": int(row.get('jours_inactifs', 0))
+            })
+
+        montant_total = sum(d['montant_brut'] for d in cold_deals)
+
+        return jsonify({"success": True, "data": {
+            "cold_deals": cold_deals,
+            "stats": {
+                "nb_cold_deals": len(cold_deals),
+                "montant_total_cold": round(montant_total, 2),
+                "montant_total_cold_formatted": format_currency(montant_total)
+            }
         }, "error": None})
 
     except Exception as e:

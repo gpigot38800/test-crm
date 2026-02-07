@@ -42,6 +42,17 @@ async function loadKPIs(filters) {
         document.getElementById('kpi-nb-deals').textContent = data.nombre_deals;
         document.getElementById('kpi-gagnes').textContent = data.deals_gagnes;
         document.getElementById('kpi-taux').textContent = `Taux de conversion : ${data.taux_conversion}%`;
+
+        // Phase 3 V2 : Deals froids count dans KPIs
+        const coldCountEl = document.getElementById('kpi-cold-count');
+        if (coldCountEl) {
+            coldCountEl.textContent = data.nb_cold_deals !== undefined ? data.nb_cold_deals : '--';
+        }
+
+        // Phase 3 V2 : Initialiser simulateur What-If avec les données KPIs
+        if (typeof initWhatIfSimulator === 'function') {
+            initWhatIfSimulator(data);
+        }
     } catch (error) {
         console.error('Erreur loadKPIs:', error);
     }
@@ -146,13 +157,17 @@ async function loadDeadlines(filters) {
 
 async function refreshDashboard(filters) {
     currentFilters = filters || null;
-    await Promise.all([
+    const tasks = [
         loadKPIs(filters),
         loadDealsTable(filters),
         initSectorCharts(filters),
         initPerformanceChart(filters),
         loadDeadlines(filters)
-    ]);
+    ];
+    // Phase 3 V2
+    if (typeof loadVelocity === 'function') tasks.push(loadVelocity(filters));
+    if (typeof loadColdDeals === 'function') tasks.push(loadColdDeals(filters));
+    await Promise.all(tasks);
 }
 
 // Initialisation au chargement de la page

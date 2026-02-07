@@ -64,7 +64,7 @@
 <!-- Section KPIs -->
 <section class="mb-8">
     <h2 class="text-lg font-semibold text-gray-700 mb-4">KPIs Flash</h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div class="kpi-card bg-white rounded-lg shadow p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-medium text-gray-500">Pipeline Pondéré</span>
@@ -93,6 +93,14 @@
             </div>
             <p id="kpi-gagnes" class="text-2xl font-bold text-gray-800">--</p>
             <p id="kpi-taux" class="text-sm text-gray-500 mt-1"></p>
+        </div>
+        <div class="kpi-card bg-white rounded-lg shadow p-5 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-500">Deals Froids</span>
+                <span class="text-2xl">&#10052;</span>
+            </div>
+            <p id="kpi-cold-count" class="text-2xl font-bold text-gray-800">--</p>
+            <div id="kpi-cold-badge" class="mt-1 hidden"></div>
         </div>
     </div>
 </section>
@@ -189,6 +197,96 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section Vitesse de Vente -->
+<section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Vitesse de Vente</h2>
+    <div id="velocity-content" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-lg shadow p-5 border border-gray-100 kpi-card">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-500">Vitesse Moyenne</span>
+                <span class="text-2xl">&#9889;</span>
+            </div>
+            <p id="kpi-velocity" class="text-2xl font-bold text-gray-800">--</p>
+            <p class="text-sm text-gray-400 mt-1">Jours moyen Prospect &rarr; Gagn&eacute;</p>
+        </div>
+        <div id="velocity-chart-wrapper" class="bg-white rounded-lg shadow p-5 border border-gray-100 hidden">
+            <h3 class="text-sm font-medium text-gray-500 mb-3">Durée Moyenne par Secteur (jours)</h3>
+            <div style="position:relative; height:200px;">
+                <canvas id="chart-velocity"></canvas>
+            </div>
+        </div>
+    </div>
+    <div id="velocity-empty-state" class="hidden bg-white rounded-lg shadow p-5 border border-gray-100 mt-4">
+        <p class="text-gray-400 text-center text-sm py-2">Aucune donnée de vélocité par secteur disponible</p>
+    </div>
+</section>
+
+<!-- Section Simulateur What-If -->
+<section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Simulateur What-If</h2>
+    <div class="bg-white rounded-lg shadow p-6 border border-gray-100">
+        <p class="text-sm text-gray-500 mb-4">Simulez l'impact d'une variation du panier moyen sur votre pipeline</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="whatif-slider">
+                    Variation du panier moyen : <span id="whatif-percent" class="font-bold text-blue-600">0%</span>
+                </label>
+                <input type="range" id="whatif-slider" min="-50" max="50" step="5" value="0"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>-50%</span>
+                    <span>0%</span>
+                    <span>+50%</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <p class="text-xs text-gray-500 mb-1">Nouveau Panier Moyen</p>
+                    <p id="whatif-panier" class="text-lg font-bold text-gray-800">--</p>
+                </div>
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <p class="text-xs text-gray-500 mb-1">Pipeline Projeté</p>
+                    <p id="whatif-pipeline" class="text-lg font-bold text-gray-800">--</p>
+                </div>
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <p class="text-xs text-gray-500 mb-1">Différence</p>
+                    <p id="whatif-diff" class="text-lg font-bold text-gray-800">--</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section Deals Froids -->
+<section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">
+        Deals Froids
+        <span id="cold-deals-badge" class="hidden ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"></span>
+    </h2>
+    <div class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+        <div id="cold-deals-empty" class="hidden px-5 py-8 text-gray-400 text-center">
+            Aucun deal froid &mdash; tous les deals sont actifs
+        </div>
+        <div id="cold-deals-table-wrapper" class="overflow-x-auto">
+            <table class="data-table w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-5 py-3">Client</th>
+                        <th class="px-5 py-3">Statut</th>
+                        <th class="px-5 py-3">Montant</th>
+                        <th class="px-5 py-3">Secteur</th>
+                        <th class="px-5 py-3">Commercial</th>
+                        <th class="px-5 py-3">Inactif depuis</th>
+                    </tr>
+                </thead>
+                <tbody id="table-cold-deals">
+                    <tr><td colspan="6" class="px-5 py-4 text-gray-400 text-center">Chargement...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </section>
@@ -337,5 +435,6 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 <script src="{{ url_for('static', filename='js/deal-form.js') }}"></script>
+<script src="{{ url_for('static', filename='js/phase3.js') }}"></script>
 <script src="{{ url_for('static', filename='js/filters.js') }}"></script>
 {% endblock %}

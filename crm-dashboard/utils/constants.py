@@ -21,6 +21,12 @@ VALID_STATUSES = [
     'gagné - en cours'  # Variante trouvée dans le CSV demo
 ]
 
+# Seuil d'inactivité pour les deals froids (en jours)
+COLD_DEAL_THRESHOLD_DAYS = 10
+
+# Statuts considérés comme "Gagné" (exclus des deals froids)
+WON_STATUSES = ['gagné', 'gagné - en cours']
+
 # Mapping des colonnes CSV vers schéma DB
 CSV_TO_DB_COLUMNS = {
     'task name': 'client',

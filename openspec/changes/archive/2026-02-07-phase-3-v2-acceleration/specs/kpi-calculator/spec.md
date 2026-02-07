@@ -1,3 +1,5 @@
+## MODIFIED Requirements
+
 ### Requirement: Exposition KPIs via API REST
 Le système SHALL exposer les KPIs calculés via endpoint GET /api/kpis retournant JSON au lieu de composants Streamlit tout en réutilisant la logique de calcul existante. Le système SHALL également inclure la vitesse de vente moyenne et le nombre de deals froids dans la réponse KPIs.
 

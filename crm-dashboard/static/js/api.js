@@ -84,6 +84,30 @@ async function fetchPerformance(filters) {
     }
 }
 
+async function fetchVelocity(filters) {
+    try {
+        const response = await fetch(`${API_BASE}/analytics/velocity${buildQueryString(filters)}`);
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error);
+        return result.data;
+    } catch (error) {
+        console.error('Erreur fetchVelocity:', error);
+        throw error;
+    }
+}
+
+async function fetchColdDeals(filters) {
+    try {
+        const response = await fetch(`${API_BASE}/analytics/cold-deals${buildQueryString(filters)}`);
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error);
+        return result.data;
+    } catch (error) {
+        console.error('Erreur fetchColdDeals:', error);
+        throw error;
+    }
+}
+
 async function fetchFilterOptions() {
     try {
         const response = await fetch(`${API_BASE}/filters/options`);
