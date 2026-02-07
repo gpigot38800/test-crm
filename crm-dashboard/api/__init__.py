@@ -13,9 +13,11 @@ def register_blueprints(app):
     from .deals import deals_bp
     from .analytics import analytics_bp
     from .upload import upload_bp
+    from .sync import sync_bp
 
     app.register_blueprint(deals_bp, url_prefix='/api')
     app.register_blueprint(analytics_bp, url_prefix='/api')
     app.register_blueprint(upload_bp, url_prefix='/api')
+    app.register_blueprint(sync_bp, url_prefix='/api')
 
     print("[OK] Blueprints API enregistres")

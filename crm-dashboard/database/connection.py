@@ -78,6 +78,30 @@ def init_database():
                 CREATE INDEX IF NOT EXISTS idx_deals_secteur ON deals(secteur);
                 CREATE INDEX IF NOT EXISTS idx_deals_date_echeance ON deals(date_echeance);
                 CREATE INDEX IF NOT EXISTS idx_deals_assignee ON deals(assignee);
+
+                CREATE TABLE IF NOT EXISTS connector_configs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    provider TEXT UNIQUE NOT NULL,
+                    api_token TEXT,
+                    base_id TEXT,
+                    table_name TEXT,
+                    field_mapping TEXT,
+                    is_active INTEGER DEFAULT 1,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS sync_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    provider TEXT NOT NULL,
+                    direction TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    records_processed INTEGER DEFAULT 0,
+                    records_created INTEGER DEFAULT 0,
+                    records_updated INTEGER DEFAULT 0,
+                    error_message TEXT,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP
+                );
             """)
             conn.commit()
         else:

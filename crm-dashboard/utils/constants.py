@@ -21,6 +21,20 @@ VALID_STATUSES = [
     'gagné - en cours'  # Variante trouvée dans le CSV demo
 ]
 
+# Mapping de normalisation des statuts anglais → français
+STATUS_NORMALIZATION_MAP = {
+    'lead': 'prospect',
+    'new': 'prospect',
+    'qualified': 'qualifié',
+    'negotiation': 'négociation',
+    'negociation': 'négociation',
+    'won': 'gagné',
+    'closed won': 'gagné',
+    'closed-won': 'gagné',
+    'lost': 'prospect',
+    'in progress': 'gagné - en cours',
+}
+
 # Seuil d'inactivité pour les deals froids (en jours)
 COLD_DEAL_THRESHOLD_DAYS = 10
 

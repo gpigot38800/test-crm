@@ -258,6 +258,149 @@ def get_filter_options() -> Dict[str, List[str]]:
         raise Exception(f"Erreur lors de la récupération des options de filtres: {str(e)}")
 
 
+def get_deal_by_client(client_name: str) -> Optional[Dict[str, Any]]:
+    """Récupère un deal par le nom du client (pour la sync)."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        ph = _placeholder()
+        cursor.execute(f"SELECT * FROM {TABLE_NAME} WHERE client = {ph}", (client_name,))
+        row = cursor.fetchone()
+        return _row_to_dict(cursor, row)
+    except Exception as e:
+        raise Exception(f"Erreur lors de la recherche du deal client '{client_name}': {str(e)}")
+
+
+# --- CRUD connector_configs ---
+
+def get_connector_config(provider: str) -> Optional[Dict[str, Any]]:
+    """Récupère la configuration d'un connecteur par provider."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        ph = _placeholder()
+        cursor.execute(f"SELECT * FROM connector_configs WHERE provider = {ph}", (provider,))
+        row = cursor.fetchone()
+        return _row_to_dict(cursor, row)
+    except Exception as e:
+        raise Exception(f"Erreur lecture config {provider}: {str(e)}")
+
+
+def get_all_connector_configs() -> List[Dict[str, Any]]:
+    """Récupère toutes les configurations de connecteurs."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM connector_configs ORDER BY provider")
+        rows = cursor.fetchall()
+        return [_row_to_dict(cursor, row) for row in rows]
+    except Exception as e:
+        raise Exception(f"Erreur lecture configs connecteurs: {str(e)}")
+
+
+def upsert_connector_config(provider: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Crée ou met à jour la configuration d'un connecteur."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    ph = _placeholder()
+
+    try:
+        existing = get_connector_config(provider)
+
+        if existing:
+            set_parts = []
+            values = []
+            for key, value in data.items():
+                set_parts.append(f"{key} = {ph}")
+                values.append(value)
+            set_parts.append(f"updated_at = CURRENT_TIMESTAMP")
+            values.append(provider)
+
+            query = f"UPDATE connector_configs SET {', '.join(set_parts)} WHERE provider = {ph}"
+            cursor.execute(query, values)
+        else:
+            data['provider'] = provider
+            columns = list(data.keys())
+            placeholders = ", ".join([ph for _ in columns])
+            columns_str = ", ".join(columns)
+            values = tuple(data[col] for col in columns)
+
+            query = f"INSERT INTO connector_configs ({columns_str}) VALUES ({placeholders})"
+            cursor.execute(query, values)
+
+        conn.commit()
+        return get_connector_config(provider)
+
+    except Exception as e:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        raise Exception(f"Erreur upsert config {provider}: {str(e)}")
+
+
+# --- CRUD sync_logs ---
+
+def insert_sync_log(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Insère un log de synchronisation."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    ph = _placeholder()
+
+    try:
+        columns = list(data.keys())
+        placeholders = ", ".join([ph for _ in columns])
+        columns_str = ", ".join(columns)
+        values = tuple(data[col] for col in columns)
+
+        if get_db_type() == 'postgresql':
+            query = f"INSERT INTO sync_logs ({columns_str}) VALUES ({placeholders}) RETURNING id"
+            cursor.execute(query, values)
+            new_id = cursor.fetchone()[0]
+        else:
+            query = f"INSERT INTO sync_logs ({columns_str}) VALUES ({placeholders})"
+            cursor.execute(query, values)
+            new_id = cursor.lastrowid
+
+        conn.commit()
+
+        cursor.execute(f"SELECT * FROM sync_logs WHERE id = {ph}", (new_id,))
+        row = cursor.fetchone()
+        return _row_to_dict(cursor, row)
+
+    except Exception as e:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        raise Exception(f"Erreur insertion sync_log: {str(e)}")
+
+
+def get_sync_logs(limit: int = 50, provider_filter: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Récupère les derniers logs de synchronisation."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        ph = _placeholder()
+
+        query = "SELECT * FROM sync_logs"
+        values = []
+
+        if provider_filter:
+            query += f" WHERE provider = {ph}"
+            values.append(provider_filter)
+
+        query += f" ORDER BY started_at DESC LIMIT {ph}"
+        values.append(limit)
+
+        cursor.execute(query, values)
+        rows = cursor.fetchall()
+        return [_row_to_dict(cursor, row) for row in rows]
+
+    except Exception as e:
+        raise Exception(f"Erreur lecture sync_logs: {str(e)}")
+
+
 def clear_all_deals() -> None:
     """Supprime tous les deals de la table."""
     try:

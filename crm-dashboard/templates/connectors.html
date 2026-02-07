@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Connecteurs API - CRM{% endblock %}
+
+{% block sidebar %}
+<div class="space-y-3">
+    <p class="text-sm text-gray-500">Configurez vos connecteurs API pour synchroniser vos deals avec Airtable et Notion.</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Onglets -->
+    <div class="border-b border-gray-200">
+        <nav class="flex flex-wrap -mb-px" id="connector-tabs">
+            <button class="tab-btn active px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600" data-tab="airtable">
+                Airtable
+            </button>
+            <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="notion">
+                Notion
+            </button>
+        </nav>
+    </div>
+
+    <!-- Panel Airtable -->
+    <div id="panel-airtable" class="tab-panel space-y-6">
+        <div class="bg-white rounded-lg shadow border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Configuration Airtable</h3>
+            <form id="form-airtable" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">API Token (Personal Access Token)</label>
+                    <input type="password" id="airtable-token" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Entrez un nouveau token pour le modifier">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Base ID</label>
+                        <input type="text" id="airtable-base-id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="appXXXXXXXXXXXXXX">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Nom de la table</label>
+                        <input type="text" id="airtable-table-name" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Deals">
+                    </div>
+                </div>
+
+                <!-- Mapping des champs -->
+                <details class="border border-gray-200 rounded-lg">
+                    <summary class="px-4 py-2 text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-50">Mapping des champs</summary>
+                    <div class="p-4 space-y-2" id="mapping-airtable">
+                        <!-- Rempli dynamiquement par JS -->
+                    </div>
+                </details>
+
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Sauvegarder</button>
+                    <button type="button" id="btn-test-airtable" class="border border-gray-300 text-gray-700 text-sm px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">Tester la connexion</button>
+                    <span id="test-result-airtable" class="flex items-center text-sm"></span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Boutons Import/Export Airtable -->
+        <div class="bg-white rounded-lg shadow border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Synchronisation Airtable</h3>
+            <div class="flex flex-wrap gap-3">
+                <button id="btn-import-airtable" class="bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Configurez d'abord le connecteur">
+                    Importer depuis Airtable
+                </button>
+                <button id="btn-export-airtable" class="bg-purple-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Configurez d'abord le connecteur">
+                    Exporter vers Airtable
+                </button>
+            </div>
+            <div id="sync-result-airtable" class="mt-3 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Panel Notion -->
+    <div id="panel-notion" class="tab-panel hidden space-y-6">
+        <div class="bg-white rounded-lg shadow border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Configuration Notion</h3>
+            <form id="form-notion" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Integration Token</label>
+                    <input type="password" id="notion-token" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Entrez un nouveau token pour le modifier">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Database ID</label>
+                    <input type="text" id="notion-base-id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                </div>
+
+                <!-- Mapping des champs -->
+                <details class="border border-gray-200 rounded-lg">
+                    <summary class="px-4 py-2 text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-50">Mapping des champs</summary>
+                    <div class="p-4 space-y-2" id="mapping-notion">
+                        <!-- Rempli dynamiquement par JS -->
+                    </div>
+                </details>
+
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Sauvegarder</button>
+                    <button type="button" id="btn-test-notion" class="border border-gray-300 text-gray-700 text-sm px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">Tester la connexion</button>
+                    <span id="test-result-notion" class="flex items-center text-sm"></span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Boutons Import/Export Notion -->
+        <div class="bg-white rounded-lg shadow border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Synchronisation Notion</h3>
+            <div class="flex flex-wrap gap-3">
+                <button id="btn-import-notion" class="bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Configurez d'abord le connecteur">
+                    Importer depuis Notion
+                </button>
+                <button id="btn-export-notion" class="bg-purple-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Configurez d'abord le connecteur">
+                    Exporter vers Notion
+                </button>
+            </div>
+            <div id="sync-result-notion" class="mt-3 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Logs de synchronisation -->
+    <div class="bg-white rounded-lg shadow border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Historique des synchronisations</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-3">Date</th>
+                        <th class="px-4 py-3">Provider</th>
+                        <th class="px-4 py-3">Direction</th>
+                        <th class="px-4 py-3">Statut</th>
+                        <th class="px-4 py-3">Records</th>
+                    </tr>
+                </thead>
+                <tbody id="sync-logs-body">
+                    <tr><td colspan="5" class="px-4 py-4 text-gray-400 text-center">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_BASE = '/api';
+
+const DEFAULT_MAPPING = {
+    client: 'Name',
+    statut: 'Status',
+    montant_brut: 'Amount',
+    secteur: 'Sector',
+    date_echeance: 'Due Date',
+    assignee: 'Assignee',
+    notes: 'Notes'
+};
+
+const CRM_FIELD_LABELS = {
+    client: 'Client',
+    statut: 'Statut',
+    montant_brut: 'Montant',
+    secteur: 'Secteur',
+    date_echeance: 'Echéance',
+    assignee: 'Commercial',
+    notes: 'Notes'
+};
+
+// State
+let configs = {};
+
+// --- Onglets ---
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active', 'border-blue-600', 'text-blue-600');
+            b.classList.add('border-transparent', 'text-gray-500');
+        });
+        this.classList.add('active', 'border-blue-600', 'text-blue-600');
+        this.classList.remove('border-transparent', 'text-gray-500');
+
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.getElementById('panel-' + this.dataset.tab).classList.remove('hidden');
+    });
+});
+
+// --- Mapping UI ---
+function renderMapping(containerId, mapping) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    for (const [crmField, externalField] of Object.entries(mapping)) {
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        row.innerHTML = `
+            <span class="w-28 text-sm text-gray-500 flex-shrink-0">${CRM_FIELD_LABELS[crmField] || crmField}</span>
+            <span class="text-gray-400">→</span>
+            <input type="text" class="mapping-input flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" data-crm-field="${crmField}" value="${externalField}">
+        `;
+        container.appendChild(row);
+    }
+}
+
+function getMapping(containerId) {
+    const inputs = document.querySelectorAll(`#${containerId} .mapping-input`);
+    const mapping = {};
+    inputs.forEach(input => {
+        mapping[input.dataset.crmField] = input.value;
+    });
+    return mapping;
+}
+
+// --- Charger configs ---
+async function loadConfigs() {
+    try {
+        const res = await fetch(`${API_BASE}/connectors/config`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        for (const cfg of data.data) {
+            configs[cfg.provider] = cfg;
+        }
+
+        // Pré-remplir Airtable
+        if (configs.airtable) {
+            const c = configs.airtable;
+            document.getElementById('airtable-token').placeholder = c.api_token === '***' ? '*** (token configuré)' : 'Entrez votre token';
+            document.getElementById('airtable-base-id').value = c.base_id || '';
+            document.getElementById('airtable-table-name').value = c.table_name || '';
+            const mapping = c.field_mapping ? (typeof c.field_mapping === 'string' ? JSON.parse(c.field_mapping) : c.field_mapping) : DEFAULT_MAPPING;
+            renderMapping('mapping-airtable', mapping);
+            updateSyncButtons('airtable', c);
+        } else {
+            renderMapping('mapping-airtable', DEFAULT_MAPPING);
+        }
+
+        // Pré-remplir Notion
+        if (configs.notion) {
+            const c = configs.notion;
+            document.getElementById('notion-token').placeholder = c.api_token === '***' ? '*** (token configuré)' : 'Entrez votre token';
+            document.getElementById('notion-base-id').value = c.base_id || '';
+            const mapping = c.field_mapping ? (typeof c.field_mapping === 'string' ? JSON.parse(c.field_mapping) : c.field_mapping) : DEFAULT_MAPPING;
+            renderMapping('mapping-notion', mapping);
+            updateSyncButtons('notion', c);
+        } else {
+            renderMapping('mapping-notion', DEFAULT_MAPPING);
+        }
+    } catch (e) {
+        console.error('Erreur chargement configs:', e);
+    }
+}
+
+function updateSyncButtons(provider, config) {
+    const hasConfig = config && config.api_token && config.base_id;
+    document.getElementById(`btn-import-${provider}`).disabled = !hasConfig;
+    document.getElementById(`btn-export-${provider}`).disabled = !hasConfig;
+    if (hasConfig) {
+        document.getElementById(`btn-import-${provider}`).title = '';
+        document.getElementById(`btn-export-${provider}`).title = '';
+    }
+}
+
+// --- Sauvegarder config ---
+async function saveConfig(provider) {
+    const tokenEl = document.getElementById(`${provider}-token`);
+    const baseIdEl = document.getElementById(`${provider}-base-id`);
+    const tableNameEl = document.getElementById(`${provider}-table-name`);
+
+    const body = {
+        base_id: baseIdEl.value,
+        field_mapping: getMapping(`mapping-${provider}`)
+    };
+
+    if (tableNameEl) {
+        body.table_name = tableNameEl.value;
+    }
+
+    // N'envoyer le token que s'il a été modifié
+    if (tokenEl.value && tokenEl.value !== '***') {
+        body.api_token = tokenEl.value;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/connectors/config/${provider}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Configuration sauvegardée');
+            tokenEl.value = '';
+            tokenEl.placeholder = '*** (token configuré)';
+            configs[provider] = data.data;
+            updateSyncButtons(provider, data.data);
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    } catch (e) {
+        alert('Erreur réseau: ' + e.message);
+    }
+}
+
+document.getElementById('form-airtable').addEventListener('submit', function(e) {
+    e.preventDefault();
+    saveConfig('airtable');
+});
+document.getElementById('form-notion').addEventListener('submit', function(e) {
+    e.preventDefault();
+    saveConfig('notion');
+});
+
+// --- Test connexion ---
+async function testConnection(provider) {
+    const resultEl = document.getElementById(`test-result-${provider}`);
+    resultEl.innerHTML = '<span class="text-gray-500">Test en cours...</span>';
+
+    try {
+        const res = await fetch(`${API_BASE}/connectors/test/${provider}`, {method: 'POST'});
+        const data = await res.json();
+
+        if (data.success) {
+            resultEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Connecté — ${data.record_count} records</span>`;
+        } else {
+            resultEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Erreur — ${data.message || data.error}</span>`;
+        }
+    } catch (e) {
+        resultEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Erreur réseau</span>`;
+    }
+}
+
+document.getElementById('btn-test-airtable').addEventListener('click', () => testConnection('airtable'));
+document.getElementById('btn-test-notion').addEventListener('click', () => testConnection('notion'));
+
+// --- Import/Export ---
+async function syncAction(provider, direction) {
+    const btn = document.getElementById(`btn-${direction}-${provider}`);
+    const resultEl = document.getElementById(`sync-result-${provider}`);
+
+    btn.disabled = true;
+    btn.textContent = direction === 'import' ? 'Import en cours...' : 'Export en cours...';
+    resultEl.classList.remove('hidden');
+    resultEl.innerHTML = '<span class="text-gray-500">Synchronisation en cours...</span>';
+
+    try {
+        const res = await fetch(`${API_BASE}/sync/${provider}/${direction}`, {method: 'POST'});
+        const data = await res.json();
+
+        if (data.success) {
+            const statusClass = data.status === 'success' ? 'text-green-700 bg-green-50' : data.status === 'partial' ? 'text-orange-700 bg-orange-50' : 'text-red-700 bg-red-50';
+            let html = `<div class="p-3 rounded-lg ${statusClass}">`;
+            html += `<p class="font-medium">${data.records_created} créé(s), ${data.records_updated} mis à jour</p>`;
+            if (data.errors && data.errors.length > 0) {
+                html += `<p class="mt-1 text-xs">${data.errors.length} erreur(s): ${data.errors.slice(0, 3).join('; ')}</p>`;
+            }
+            if (data.unknown_statuses && data.unknown_statuses.length > 0) {
+                html += `<p class="mt-1 text-xs">Statuts normalisés: ${data.unknown_statuses.slice(0, 3).join('; ')}</p>`;
+            }
+            html += '</div>';
+            resultEl.innerHTML = html;
+        } else {
+            resultEl.innerHTML = `<div class="p-3 rounded-lg text-red-700 bg-red-50">${data.error}</div>`;
+        }
+    } catch (e) {
+        resultEl.innerHTML = `<div class="p-3 rounded-lg text-red-700 bg-red-50">Erreur réseau: ${e.message}</div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = direction === 'import' ? `Importer depuis ${provider === 'airtable' ? 'Airtable' : 'Notion'}` : `Exporter vers ${provider === 'airtable' ? 'Airtable' : 'Notion'}`;
+    loadSyncLogs();
+}
+
+document.getElementById('btn-import-airtable').addEventListener('click', () => syncAction('airtable', 'import'));
+document.getElementById('btn-export-airtable').addEventListener('click', () => syncAction('airtable', 'export'));
+document.getElementById('btn-import-notion').addEventListener('click', () => syncAction('notion', 'import'));
+document.getElementById('btn-export-notion').addEventListener('click', () => syncAction('notion', 'export'));
+
+// --- Logs ---
+async function loadSyncLogs() {
+    try {
+        const res = await fetch(`${API_BASE}/sync/logs`);
+        const data = await res.json();
+        const tbody = document.getElementById('sync-logs-body');
+
+        if (!data.success || !data.data || data.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-gray-400 text-center">Aucune synchronisation effectuée pour le moment</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.data.slice(0, 20).map(log => {
+            const date = log.started_at ? new Date(log.started_at).toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}) : '-';
+            const providerLabel = log.provider === 'airtable' ? 'Airtable' : 'Notion';
+            const dirLabel = log.direction === 'import' ? 'Import' : 'Export';
+
+            let statusBadge = '';
+            if (log.status === 'success') {
+                statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Succès</span>';
+            } else if (log.status === 'error') {
+                statusBadge = `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800" title="${(log.error_message || '').replace(/"/g, '&quot;')}">Erreur</span>`;
+            } else {
+                statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">Partiel</span>';
+            }
+
+            const records = `${log.records_created || 0} créé(s), ${log.records_updated || 0} maj`;
+
+            return `<tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="px-4 py-3 text-gray-600">${date}</td>
+                <td class="px-4 py-3 font-medium">${providerLabel}</td>
+                <td class="px-4 py-3">${dirLabel}</td>
+                <td class="px-4 py-3">${statusBadge}</td>
+                <td class="px-4 py-3 text-gray-600">${records}</td>
+            </tr>`;
+        }).join('');
+    } catch (e) {
+        console.error('Erreur chargement logs:', e);
+    }
+}
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', function() {
+    loadConfigs();
+    loadSyncLogs();
+});
+</script>
+{% endblock %}

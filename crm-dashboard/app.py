@@ -36,6 +36,11 @@ def index():
     """Affiche le dashboard principal"""
     return render_template('dashboard.html')
 
+@app.route('/connectors')
+def connectors():
+    """Affiche la page de configuration des connecteurs API"""
+    return render_template('connectors.html')
+
 # Importer et enregistrer les blueprints API
 from api import register_blueprints
 register_blueprints(app)
