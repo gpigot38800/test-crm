@@ -2,13 +2,69 @@
 
 {% block title %}Dashboard CRM - Fondateur{% endblock %}
 
+{% block sidebar %}
+<!-- Filtre Statut -->
+<div class="mb-5">
+    <h3 class="text-sm font-semibold text-gray-600 uppercase mb-2">Statut</h3>
+    <div id="filter-statuts" class="space-y-1">
+        <p class="text-xs text-gray-400">Chargement...</p>
+    </div>
+</div>
+
+<!-- Filtre Secteur -->
+<div class="mb-5">
+    <h3 class="text-sm font-semibold text-gray-600 uppercase mb-2">Secteur</h3>
+    <div id="filter-secteurs" class="space-y-1">
+        <p class="text-xs text-gray-400">Chargement...</p>
+    </div>
+</div>
+
+<!-- Filtre Commercial -->
+<div class="mb-5">
+    <h3 class="text-sm font-semibold text-gray-600 uppercase mb-2">Commercial</h3>
+    <div id="filter-assignees" class="space-y-1">
+        <p class="text-xs text-gray-400">Chargement...</p>
+    </div>
+</div>
+
+<!-- Filtre Dates -->
+<div class="mb-5">
+    <h3 class="text-sm font-semibold text-gray-600 uppercase mb-2">Dates d'échéance</h3>
+    <div class="space-y-2">
+        <div>
+            <label class="text-xs text-gray-500" for="filter-date-from">Du</label>
+            <input type="date" id="filter-date-from" class="w-full text-sm border border-gray-300 rounded px-2 py-1">
+        </div>
+        <div>
+            <label class="text-xs text-gray-500" for="filter-date-to">Au</label>
+            <input type="date" id="filter-date-to" class="w-full text-sm border border-gray-300 rounded px-2 py-1">
+        </div>
+    </div>
+</div>
+
+<!-- Recherche texte -->
+<div class="mb-5">
+    <h3 class="text-sm font-semibold text-gray-600 uppercase mb-2">Recherche</h3>
+    <input type="text" id="filter-search" placeholder="Client ou notes..." class="w-full text-sm border border-gray-300 rounded px-2 py-1.5">
+</div>
+
+<!-- Boutons -->
+<div class="space-y-2">
+    <button id="btn-apply-filters" class="w-full bg-blue-600 text-white text-sm px-3 py-2 rounded hover:bg-blue-700 transition-colors">
+        Appliquer
+    </button>
+    <button id="btn-reset-filters" class="w-full bg-gray-200 text-gray-700 text-sm px-3 py-2 rounded hover:bg-gray-300 transition-colors">
+        Réinitialiser
+    </button>
+</div>
+{% endblock %}
+
 {% block content %}
 
 <!-- Section KPIs -->
 <section class="mb-8">
     <h2 class="text-lg font-semibold text-gray-700 mb-4">KPIs Flash</h2>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Card Pipeline Pondéré -->
         <div class="kpi-card bg-white rounded-lg shadow p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-medium text-gray-500">Pipeline Pondéré</span>
@@ -16,8 +72,6 @@
             </div>
             <p id="kpi-pipeline" class="text-2xl font-bold text-gray-800">--</p>
         </div>
-
-        <!-- Card Panier Moyen -->
         <div class="kpi-card bg-white rounded-lg shadow p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-medium text-gray-500">Panier Moyen</span>
@@ -25,8 +79,6 @@
             </div>
             <p id="kpi-panier" class="text-2xl font-bold text-gray-800">--</p>
         </div>
-
-        <!-- Card Nombre de Deals -->
         <div class="kpi-card bg-white rounded-lg shadow p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-medium text-gray-500">Nombre de Deals</span>
@@ -34,8 +86,6 @@
             </div>
             <p id="kpi-nb-deals" class="text-2xl font-bold text-gray-800">--</p>
         </div>
-
-        <!-- Card Deals Gagnés -->
         <div class="kpi-card bg-white rounded-lg shadow p-5 border border-gray-100">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-medium text-gray-500">Deals Gagnés</span>
@@ -47,24 +97,49 @@
     </div>
 </section>
 
+<!-- Section Liste des Deals -->
+<section class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-700">Liste des Deals</h2>
+        <button id="btn-new-deal" class="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            + Nouveau Deal
+        </button>
+    </div>
+    <div class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="data-table w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-3">Client</th>
+                        <th class="px-4 py-3">Statut</th>
+                        <th class="px-4 py-3">Montant</th>
+                        <th class="px-4 py-3">Secteur</th>
+                        <th class="px-4 py-3">Commercial</th>
+                        <th class="px-4 py-3">Échéance</th>
+                        <th class="px-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="table-deals">
+                    <tr><td colspan="7" class="px-4 py-4 text-gray-400 text-center">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
 <!-- Section Analyse par Secteur -->
 <section class="mb-8">
     <h2 class="text-lg font-semibold text-gray-700 mb-4">Analyse par Secteur</h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Graphique Montants Totaux par Secteur -->
         <div class="bg-white rounded-lg shadow p-5 border border-gray-100 chart-container">
             <h3 class="text-sm font-medium text-gray-500 mb-3">Montant Total par Secteur</h3>
             <canvas id="chart-montants-secteurs"></canvas>
         </div>
-
-        <!-- Graphique Top 5 Paniers Moyens -->
         <div class="bg-white rounded-lg shadow p-5 border border-gray-100 chart-container">
             <h3 class="text-sm font-medium text-gray-500 mb-3">Top 5 - Panier Moyen par Secteur</h3>
             <canvas id="chart-panier-moyen"></canvas>
         </div>
     </div>
-
-    <!-- Tableau Récapitulatif Secteurs -->
     <div class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
         <h3 class="text-sm font-medium text-gray-500 px-5 pt-4 pb-2">Récapitulatif par Secteur</h3>
         <div class="overflow-x-auto">
@@ -86,17 +161,45 @@
     </div>
 </section>
 
+<!-- Section Performance Commerciale -->
+<section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Performance Commerciale</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-5 border border-gray-100 chart-container">
+            <h3 class="text-sm font-medium text-gray-500 mb-3">Deals & Conversion par Commercial</h3>
+            <div id="performance-chart-empty" class="hidden text-gray-400 text-center py-8">Aucune donnée de performance disponible</div>
+            <canvas id="chart-performance"></canvas>
+        </div>
+        <div class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+            <h3 class="text-sm font-medium text-gray-500 px-5 pt-4 pb-2">Récapitulatif par Commercial</h3>
+            <div class="overflow-x-auto">
+                <table class="data-table w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                        <tr>
+                            <th class="px-4 py-3">Commercial</th>
+                            <th class="px-4 py-3">Nb Deals</th>
+                            <th class="px-4 py-3">Montant Total</th>
+                            <th class="px-4 py-3">Pipeline Pondéré</th>
+                            <th class="px-4 py-3">Panier Moyen</th>
+                            <th class="px-4 py-3">Taux Conv.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-performance">
+                        <tr><td colspan="6" class="px-4 py-4 text-gray-400 text-center">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Section Gestion des Échéances -->
 <section class="mb-8">
     <h2 class="text-lg font-semibold text-gray-700 mb-4">Gestion des Échéances</h2>
-
-    <!-- Alerte Retards -->
     <div id="alert-overdue" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
         <span class="font-medium" id="alert-overdue-text"></span>
     </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Tableau Échéances Dépassées -->
         <div class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
             <h3 class="text-sm font-medium text-red-600 px-5 pt-4 pb-2">Échéances Dépassées</h3>
             <div class="overflow-x-auto">
@@ -115,8 +218,6 @@
                 </table>
             </div>
         </div>
-
-        <!-- Tableau Échéances À Venir -->
         <div class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
             <h3 class="text-sm font-medium text-green-600 px-5 pt-4 pb-2">À Venir (30 jours)</h3>
             <div class="overflow-x-auto">
@@ -142,7 +243,6 @@
 <section class="mb-8">
     <h2 class="text-lg font-semibold text-gray-700 mb-4">Import CSV</h2>
     <div class="bg-white rounded-lg shadow p-6 border border-gray-100">
-        <!-- Zone Drag & Drop -->
         <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer">
             <p class="text-gray-500 mb-2">Glissez-déposez votre fichier CSV ici</p>
             <p class="text-gray-400 text-sm mb-4">ou</p>
@@ -152,8 +252,6 @@
             </label>
             <p id="file-name" class="text-sm text-gray-600 mt-3 hidden"></p>
         </div>
-
-        <!-- Bouton Upload -->
         <div class="mt-4 flex items-center gap-4">
             <button id="btn-upload" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                 Importer
@@ -165,18 +263,79 @@
                 </svg>
             </div>
         </div>
-
-        <!-- Messages -->
         <div id="upload-success" class="hidden mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg"></div>
         <div id="upload-error" class="hidden mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"></div>
     </div>
 </section>
+
+<!-- Modal Formulaire Deal -->
+<div id="deal-modal" class="modal-backdrop hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <h3 id="modal-title" class="text-lg font-semibold text-gray-800">Nouveau Deal</h3>
+            <button id="btn-modal-close" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form id="deal-form" class="px-6 py-4 space-y-4">
+            <input type="hidden" id="deal-id">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="deal-client">Client *</label>
+                <input type="text" id="deal-client" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="deal-statut">Statut *</label>
+                    <select id="deal-statut" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">-- Choisir --</option>
+                        <option value="Prospect">Prospect</option>
+                        <option value="Qualifié">Qualifié</option>
+                        <option value="Négociation">Négociation</option>
+                        <option value="Gagné">Gagné</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="deal-montant">Montant (€) *</label>
+                    <input type="number" id="deal-montant" required min="0.01" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="deal-secteur">Secteur</label>
+                    <input type="text" id="deal-secteur" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="deal-echeance">Date d'échéance</label>
+                    <input type="date" id="deal-echeance" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="deal-assignee">Commercial</label>
+                <input type="text" id="deal-assignee" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="deal-notes">Notes</label>
+                <textarea id="deal-notes" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </div>
+            <div id="deal-form-error" class="hidden bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm"></div>
+        </form>
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+            <button id="btn-modal-cancel" type="button" class="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">Annuler</button>
+            <button id="btn-modal-save" type="button" class="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">Enregistrer</button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/performance.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script src="{{ url_for('static', filename='js/deal-form.js') }}"></script>
+<script src="{{ url_for('static', filename='js/filters.js') }}"></script>
 {% endblock %}

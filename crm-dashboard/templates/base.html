@@ -20,22 +20,77 @@
 
     <!-- Header -->
     <header class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
+            <!-- Bouton hamburger (mobile uniquement) -->
+            <button id="btn-sidebar-toggle" class="lg:hidden mr-3 p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800" aria-label="Ouvrir les filtres">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
             <h1 class="text-2xl font-bold text-gray-800">Dashboard CRM - Fondateur</h1>
         </div>
     </header>
 
-    <!-- Contenu principal -->
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
-        {% block content %}{% endblock %}
-    </main>
+    <!-- Layout 2 colonnes -->
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- Sidebar overlay (mobile) -->
+        <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar-panel fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 overflow-y-auto lg:block">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-4 lg:hidden">
+                    <h2 class="text-lg font-semibold text-gray-700">Filtres</h2>
+                    <button id="btn-sidebar-close" class="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <h2 class="hidden lg:block text-lg font-semibold text-gray-700 mb-4">Filtres</h2>
+                {% block sidebar %}{% endblock %}
+            </div>
+        </aside>
+
+        <!-- Contenu principal -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-200 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <p class="text-sm text-gray-500 text-center">Dashboard CRM MVP - Phase 1</p>
+            <p class="text-sm text-gray-500 text-center">Dashboard CRM - Phase 2 - V1</p>
         </div>
     </footer>
+
+    <!-- Script sidebar toggle -->
+    <script>
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const btnToggle = document.getElementById('btn-sidebar-toggle');
+            const btnClose = document.getElementById('btn-sidebar-close');
+
+            function openSidebar() {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+
+            if (btnToggle) btnToggle.addEventListener('click', openSidebar);
+            if (btnClose) btnClose.addEventListener('click', closeSidebar);
+            if (backdrop) backdrop.addEventListener('click', closeSidebar);
+        })();
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

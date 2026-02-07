@@ -40,6 +40,39 @@
     transition: background-color 150ms ease;
 }
 
+/* Modal */
+.modal-backdrop {
+    animation: modalFadeIn 200ms ease;
+}
+.modal-content {
+    animation: modalSlideIn 200ms ease;
+}
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Sidebar */
+.sidebar-panel {
+    transition: transform 200ms ease;
+}
+
+/* Statut Badges */
+.statut-badge {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* Action Buttons (Deals Table) */
+.btn-edit,
+.btn-delete {
+    transition: color 150ms ease;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .kpi-card {

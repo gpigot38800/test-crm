@@ -189,4 +189,4 @@
 - [x] 19.3 Archiver ancien code Streamlit dans archive/streamlit-old/
 - [x] 19.4 Prendre screenshots du nouveau dashboard
 - [x] 19.5 Créer commit Git avec message descriptif
-- [ ] 19.6 Merge branche migration-flask dans main après validation
+- [x] 19.6 Merge branche migration-flask dans main après validation

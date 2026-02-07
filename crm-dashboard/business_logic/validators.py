@@ -131,6 +131,47 @@ def parse_date(date_str: str) -> Optional[str]:
         return None
 
 
+def validate_deal_dict(data: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    """
+    Valide un dictionnaire de deal (entrée formulaire ou API JSON).
+
+    Args:
+        data: Dictionnaire contenant les champs du deal
+
+    Returns:
+        Tuple[bool, List[str]]: (True si valide, liste des messages d'erreur)
+    """
+    errors = []
+
+    # Client non vide
+    client = data.get('client', '')
+    if not client or str(client).strip() == '':
+        errors.append("Le nom du client ne peut pas être vide")
+
+    # Statut valide
+    statut = str(data.get('statut', '')).strip().lower()
+    if statut not in VALID_STATUSES:
+        errors.append(f"Statut invalide. Valeurs acceptées: {', '.join(VALID_STATUSES)}")
+
+    # Montant > 0
+    try:
+        montant = float(data.get('montant_brut', 0))
+        if montant <= 0:
+            errors.append("Le montant doit être supérieur à 0")
+    except (ValueError, TypeError):
+        errors.append("Le montant doit être un nombre valide")
+
+    # Date échéance valide (si présente)
+    date_echeance = data.get('date_echeance')
+    if date_echeance and str(date_echeance).strip():
+        parsed = parse_date(str(date_echeance))
+        if parsed is None:
+            errors.append("Format de date invalide. Formats acceptés: YYYY-MM-DD, DD/MM/YYYY")
+
+    is_valid = len(errors) == 0
+    return is_valid, errors
+
+
 def get_validation_summary(errors: List[ValidationError]) -> str:
     """
     Génère un résumé des erreurs de validation pour affichage.

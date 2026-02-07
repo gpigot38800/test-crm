@@ -9,9 +9,9 @@ function formatEuro(value) {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
 }
 
-async function initSectorCharts() {
+async function initSectorCharts(filters) {
     try {
-        const data = await fetchSectorAnalytics();
+        const data = await fetchSectorAnalytics(filters);
 
         // Graphique Montants Totaux par Secteur
         const ctxMontants = document.getElementById('chart-montants-secteurs');

@@ -1,11 +1,12 @@
 """
-Blueprint API pour les analytics (KPIs, secteurs, échéances).
-Expose les endpoints GET /api/kpis, GET /api/analytics/sectors, GET /api/analytics/deadlines.
+Blueprint API pour les analytics (KPIs, secteurs, échéances, performance).
+Expose les endpoints GET /api/kpis, GET /api/analytics/sectors,
+GET /api/analytics/deadlines, GET /api/analytics/performance, GET /api/filters/options.
 """
 
-from flask import Blueprint, jsonify
-from database.crud import get_all_deals
-from business_logic.calculators import calculate_total_pipeline
+from flask import Blueprint, jsonify, request
+from database.crud import get_all_deals, get_filtered_deals, get_filter_options
+from business_logic.calculators import calculate_total_pipeline, calculate_performance_by_assignee
 from utils.formatters import format_currency
 from datetime import datetime, timedelta
 import pandas as pd
@@ -13,11 +14,37 @@ import pandas as pd
 analytics_bp = Blueprint('analytics', __name__)
 
 
+def _extract_filter_params():
+    """Extrait les paramètres de filtrage depuis request.args."""
+    params = {}
+    if request.args.get('statut'):
+        params['statut'] = request.args.getlist('statut')
+    if request.args.get('secteur'):
+        params['secteur'] = request.args.getlist('secteur')
+    if request.args.get('assignee'):
+        params['assignee'] = request.args.getlist('assignee')
+    if request.args.get('date_from'):
+        params['date_from'] = request.args.get('date_from')
+    if request.args.get('date_to'):
+        params['date_to'] = request.args.get('date_to')
+    if request.args.get('search'):
+        params['search'] = request.args.get('search')
+    return params
+
+
+def _get_deals():
+    """Récupère les deals en appliquant les filtres si présents."""
+    params = _extract_filter_params()
+    if params:
+        return get_filtered_deals(params)
+    return get_all_deals()
+
+
 @analytics_bp.route('/kpis', methods=['GET'])
 def get_kpis():
-    """GET /api/kpis - Retourne les KPIs calculés"""
+    """GET /api/kpis - Retourne les KPIs calculés (avec filtres optionnels)"""
     try:
-        df = get_all_deals()
+        df = _get_deals()
 
         if df.empty:
             return jsonify({"success": True, "data": {
@@ -52,9 +79,9 @@ def get_kpis():
 
 @analytics_bp.route('/analytics/sectors', methods=['GET'])
 def get_sectors():
-    """GET /api/analytics/sectors - Analyse par secteur"""
+    """GET /api/analytics/sectors - Analyse par secteur (avec filtres optionnels)"""
     try:
-        df = get_all_deals()
+        df = _get_deals()
 
         if df.empty:
             return jsonify({"success": True, "data": {
@@ -138,9 +165,9 @@ def get_sectors():
 
 @analytics_bp.route('/analytics/deadlines', methods=['GET'])
 def get_deadlines():
-    """GET /api/analytics/deadlines - Échéances dépassées et à venir"""
+    """GET /api/analytics/deadlines - Échéances dépassées et à venir (avec filtres optionnels)"""
     try:
-        df = get_all_deals()
+        df = _get_deals()
 
         if df.empty:
             return jsonify({"success": True, "data": {
@@ -208,5 +235,70 @@ def get_deadlines():
             }
         }, "error": None})
 
+    except Exception as e:
+        return jsonify({"success": False, "data": None, "error": str(e)}), 500
+
+
+@analytics_bp.route('/analytics/performance', methods=['GET'])
+def get_performance():
+    """GET /api/analytics/performance - Performance par commercial (avec filtres optionnels)"""
+    try:
+        df = _get_deals()
+
+        if df.empty:
+            return jsonify({"success": True, "data": {
+                "performance": [],
+                "chart_data": {"labels": [], "datasets": []},
+                "stats": {"nb_commerciaux": 0}
+            }, "error": None})
+
+        performance = calculate_performance_by_assignee(df)
+
+        # Formater les montants
+        for p in performance:
+            p["montant_total_formatted"] = format_currency(p["montant_total"])
+            p["pipeline_pondere_formatted"] = format_currency(p["pipeline_pondere"])
+            p["panier_moyen_formatted"] = format_currency(p["panier_moyen"])
+
+        # Données Chart.js
+        labels = [p["assignee"] for p in performance]
+        chart_data = {
+            "labels": labels,
+            "datasets": [
+                {
+                    "label": "Nombre de Deals",
+                    "data": [p["nb_deals"] for p in performance],
+                    "backgroundColor": "rgba(59, 130, 246, 0.7)",
+                    "borderColor": "rgba(59, 130, 246, 1)",
+                    "borderWidth": 1,
+                    "yAxisID": "y"
+                },
+                {
+                    "label": "Taux de Conversion (%)",
+                    "data": [p["taux_conversion"] for p in performance],
+                    "backgroundColor": "rgba(34, 197, 94, 0.7)",
+                    "borderColor": "rgba(34, 197, 94, 1)",
+                    "borderWidth": 1,
+                    "yAxisID": "y1"
+                }
+            ]
+        }
+
+        return jsonify({"success": True, "data": {
+            "performance": performance,
+            "chart_data": chart_data,
+            "stats": {"nb_commerciaux": len(performance)}
+        }, "error": None})
+
+    except Exception as e:
+        return jsonify({"success": False, "data": None, "error": str(e)}), 500
+
+
+@analytics_bp.route('/filters/options', methods=['GET'])
+def get_filters_options():
+    """GET /api/filters/options - Retourne les valeurs disponibles pour les filtres"""
+    try:
+        options = get_filter_options()
+        return jsonify({"success": True, "data": options, "error": None})
     except Exception as e:
         return jsonify({"success": False, "data": None, "error": str(e)}), 500
