@@ -1,0 +1,57 @@
+/* KPI Cards - Hover effect */
+.kpi-card {
+    transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.kpi-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Drop Zone */
+.drop-zone {
+    transition: border-color 200ms ease, background-color 200ms ease;
+}
+.drop-zone.drag-over {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+/* Chart Containers */
+.chart-container {
+    animation: fadeIn 500ms ease-in;
+    min-height: 200px;
+    position: relative;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Data Tables */
+.data-table th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+.data-table td {
+    white-space: nowrap;
+}
+.data-table tbody tr {
+    transition: background-color 150ms ease;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .kpi-card {
+        padding: 1rem;
+    }
+    .kpi-card p.text-2xl {
+        font-size: 1.25rem;
+    }
+    .data-table th,
+    .data-table td {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        font-size: 0.75rem;
+    }
+}
