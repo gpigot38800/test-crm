@@ -5,8 +5,6 @@ Point d'entrée de l'application : gère l'initialisation Flask et l'enregistrem
 
 from flask import Flask, render_template
 from database.connection import init_database
-import sys
-from pathlib import Path
 
 # Créer l'application Flask
 app = Flask(__name__)
@@ -28,7 +26,6 @@ with app.app_context():
         print("[OK] Base de donnees initialisee")
     except Exception as e:
         print(f"[ERREUR] Initialisation base de donnees: {str(e)}")
-        sys.exit(1)
 
 # Route principale
 @app.route('/')

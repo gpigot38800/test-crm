@@ -7,8 +7,15 @@ import sqlite3
 import os
 from pathlib import Path
 
-# Chemin du fichier database (racine du projet)
-DB_PATH = Path(__file__).parent.parent / "crm.db"
+# Chemin du fichier database
+# En environnement serverless (Vercel), utiliser /tmp car le filesystem est read-only
+import tempfile
+_project_root = Path(__file__).parent.parent
+
+if os.environ.get('VERCEL'):
+    DB_PATH = Path(tempfile.gettempdir()) / "crm.db"
+else:
+    DB_PATH = _project_root / "crm.db"
 
 # Instance singleton de la connexion
 _connection = None
@@ -29,7 +36,8 @@ def get_connection():
 
         # Configuration des pragmas SQLite
         _connection.execute("PRAGMA foreign_keys = ON")
-        _connection.execute("PRAGMA journal_mode = WAL")
+        if not os.environ.get('VERCEL'):
+            _connection.execute("PRAGMA journal_mode = WAL")
 
         # Permet de récupérer les résultats comme des dictionnaires
         _connection.row_factory = sqlite3.Row
