@@ -64,6 +64,10 @@ crm.db
 crm.db-journal
 crm.db-shm
 crm.db-wal
+crm_data.db
+crm_data.db-journal
+crm_data.db-shm
+crm_data.db-wal
 *.sqlite
 *.sqlite3
 
