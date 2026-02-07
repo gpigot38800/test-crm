@@ -188,5 +188,5 @@
 - [x] 19.2 Documenter endpoints API dans README.md
 - [x] 19.3 Archiver ancien code Streamlit dans archive/streamlit-old/
 - [x] 19.4 Prendre screenshots du nouveau dashboard
-- [ ] 19.5 Créer commit Git avec message descriptif
+- [x] 19.5 Créer commit Git avec message descriptif
 - [ ] 19.6 Merge branche migration-flask dans main après validation
