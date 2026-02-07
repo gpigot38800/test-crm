@@ -5,6 +5,7 @@ Valide la structure CSV et les règles métier pour chaque deal.
 
 import pandas as pd
 from typing import Dict, List, Tuple, Any, Optional
+from datetime import datetime
 from dateutil import parser
 from utils.constants import VALID_STATUSES
 
@@ -123,8 +124,15 @@ def parse_date(date_str: str) -> Optional[str]:
         return None
 
     try:
-        # Utiliser dateutil.parser avec dayfirst=True (format européen)
-        parsed_date = parser.parse(str(date_str).strip(), dayfirst=True)
+        date_clean = str(date_str).strip()
+
+        # Format ISO (YYYY-MM-DD) envoyé par <input type="date"> : parser directement
+        if len(date_clean) == 10 and date_clean[4] == '-' and date_clean[7] == '-':
+            parsed_date = datetime.strptime(date_clean, '%Y-%m-%d')
+            return parsed_date.strftime('%Y-%m-%d')
+
+        # Autres formats (CSV, saisie manuelle) : dayfirst=True pour format européen
+        parsed_date = parser.parse(date_clean, dayfirst=True)
         return parsed_date.strftime('%Y-%m-%d')
 
     except (ValueError, parser.ParserError):
