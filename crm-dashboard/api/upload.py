@@ -6,7 +6,7 @@ Expose l'endpoint POST /api/upload/csv.
 import io
 import pandas as pd
 from flask import Blueprint, jsonify, request
-from database.crud import clear_all_deals, insert_deals
+from database.crud import insert_deals
 from business_logic.filters import normalize_column_names, map_csv_to_schema
 from business_logic.validators import validate_csv_structure, validate_deal_row
 from business_logic.calculators import calculate_probability, calculate_weighted_value
@@ -86,8 +86,7 @@ def upload_csv():
             return jsonify({"success": False, "data": None,
                             "error": "Aucun deal valide trouvé dans le fichier"}), 400
 
-        # Clear et insert
-        clear_all_deals()
+        # Insert cumulatif (les nouvelles données s'ajoutent aux existantes)
         nb_inserted = insert_deals(deals_to_insert)
 
         return jsonify({"success": True, "data": {

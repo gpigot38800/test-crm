@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const result = await uploadCSV(selectedFile);
-            successMsg.textContent = `Import réussi : ${result.nb_imported} deal(s) importé(s)`;
+            successMsg.textContent = `Import réussi : ${result.nb_imported} deal(s) ajouté(s)`;
             if (result.nb_errors > 0) {
                 successMsg.textContent += ` (${result.nb_errors} erreur(s) ignorée(s))`;
             }

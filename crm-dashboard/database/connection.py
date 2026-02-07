@@ -33,6 +33,10 @@ def get_connection():
         import psycopg2
         if _connection is None or _connection.closed:
             database_url = os.environ.get('DATABASE_URL')
+            # Ajouter sslmode=require si non présent (requis pour Supabase)
+            if database_url and 'sslmode' not in database_url:
+                separator = '&' if '?' in database_url else '?'
+                database_url = f"{database_url}{separator}sslmode=require"
             _connection = psycopg2.connect(database_url)
             _connection.autocommit = False
     else:
