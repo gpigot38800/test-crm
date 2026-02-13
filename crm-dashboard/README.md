@@ -1,6 +1,6 @@
-# Dashboard CRM - Fondateur
+# Deal Pulse
 
-Dashboard CRM pour fondateur avec objectif de maximiser le volume et la valeur des deals.
+Application CRM pour fondateur avec objectif de maximiser le volume et la valeur des deals.
 
 ## Lancement
 

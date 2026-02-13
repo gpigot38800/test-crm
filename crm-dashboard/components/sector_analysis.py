@@ -55,8 +55,12 @@ def _display_sector_total_chart(df: pd.DataFrame):
     """
     st.markdown("##### 💰 Montant Total par Secteur")
 
-    # Grouper par secteur et calculer le total
-    sector_totals = df.groupby('secteur')['montant_brut'].sum().sort_values(ascending=True)
+    # Grouper par secteur et calculer le total (tri décroissant)
+    sector_totals = df.groupby('secteur')['montant_brut'].sum().sort_values(ascending=False)
+
+    # Palette de couleurs distinctes pour chaque secteur
+    colors = px.colors.qualitative.Set2 + px.colors.qualitative.Pastel
+    sector_colors = [colors[i % len(colors)] for i in range(len(sector_totals))]
 
     # Créer le graphique en barres horizontales
     fig = go.Figure(data=[
@@ -65,9 +69,7 @@ def _display_sector_total_chart(df: pd.DataFrame):
             y=sector_totals.index,
             orientation='h',
             marker=dict(
-                color=sector_totals.values,
-                colorscale='Blues',
-                showscale=False
+                color=sector_colors
             ),
             text=[format_currency(val) for val in sector_totals.values],
             textposition='outside',
@@ -93,8 +95,8 @@ def _display_sector_total_chart(df: pd.DataFrame):
     st.plotly_chart(fig, width='stretch')
 
     # Afficher le secteur leader
-    top_sector = sector_totals.index[-1]
-    top_amount = sector_totals.values[-1]
+    top_sector = sector_totals.index[0]
+    top_amount = sector_totals.values[0]
     st.success(f"🏆 **Secteur leader** : {top_sector} avec {format_currency(top_amount)}")
 
 
@@ -107,24 +109,23 @@ def _display_sector_avg_basket_chart(df: pd.DataFrame):
     """
     st.markdown("##### 🛒 Top 5 Secteurs - Panier Moyen")
 
-    # Grouper par secteur et calculer la moyenne
+    # Grouper par secteur et calculer la moyenne (tri décroissant)
     sector_avg = df.groupby('secteur')['montant_brut'].mean().sort_values(ascending=False).head(5)
 
-    # Inverser pour affichage du plus petit au plus grand
-    sector_avg_sorted = sector_avg.sort_values(ascending=True)
+    # Palette de couleurs distinctes pour chaque secteur
+    colors = px.colors.qualitative.Vivid + px.colors.qualitative.Bold
+    sector_colors = [colors[i % len(colors)] for i in range(len(sector_avg))]
 
     # Créer le graphique en barres horizontales
     fig = go.Figure(data=[
         go.Bar(
-            x=sector_avg_sorted.values,
-            y=sector_avg_sorted.index,
+            x=sector_avg.values,
+            y=sector_avg.index,
             orientation='h',
             marker=dict(
-                color=sector_avg_sorted.values,
-                colorscale='Greens',
-                showscale=False
+                color=sector_colors
             ),
-            text=[format_currency(val) for val in sector_avg_sorted.values],
+            text=[format_currency(val) for val in sector_avg.values],
             textposition='outside',
             hovertemplate='<b>%{y}</b><br>Panier moyen: %{text}<extra></extra>'
         )
@@ -133,7 +134,7 @@ def _display_sector_avg_basket_chart(df: pd.DataFrame):
     fig.update_layout(
         xaxis_title="Panier Moyen (€)",
         yaxis_title="",
-        height=max(300, len(sector_avg_sorted) * 40),
+        height=max(300, len(sector_avg) * 40),
         margin=dict(l=20, r=100, t=20, b=20),
         showlegend=False,
         plot_bgcolor='white',

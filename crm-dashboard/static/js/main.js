@@ -63,6 +63,11 @@ async function loadDealsTable(filters) {
         const deals = await fetchDeals(filters);
         const tbody = document.getElementById('table-deals');
 
+        // Sauvegarder les deals pour le tri (si la fonction existe dans table-sort.js)
+        if (typeof saveDealsForSorting === 'function') {
+            saveDealsForSorting(deals);
+        }
+
         if (!deals || deals.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-4 text-gray-400 text-center">Aucun deal. Importez un CSV ou créez un deal manuellement.</td></tr>';
             return;

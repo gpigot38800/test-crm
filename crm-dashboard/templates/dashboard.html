@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard CRM - Fondateur{% endblock %}
+{% block title %}Deal Pulse{% endblock %}
 
 {% block sidebar %}
 <!-- Filtre Statut -->
@@ -118,12 +118,42 @@
             <table class="data-table w-full text-sm text-left">
                 <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
                     <tr>
-                        <th class="px-4 py-3">Client</th>
-                        <th class="px-4 py-3">Statut</th>
-                        <th class="px-4 py-3">Montant</th>
-                        <th class="px-4 py-3">Secteur</th>
-                        <th class="px-4 py-3">Commercial</th>
-                        <th class="px-4 py-3">Échéance</th>
+                        <th class="px-4 py-3 cursor-pointer hover:bg-gray-100 select-none" data-sort="client">
+                            <div class="flex items-center justify-between">
+                                <span>Client</span>
+                                <span class="sort-icon ml-2 opacity-30">⇅</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 cursor-pointer hover:bg-gray-100 select-none" data-sort="statut">
+                            <div class="flex items-center justify-between">
+                                <span>Statut</span>
+                                <span class="sort-icon ml-2 opacity-30">⇅</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 cursor-pointer hover:bg-gray-100 select-none" data-sort="montant">
+                            <div class="flex items-center justify-between">
+                                <span>Montant</span>
+                                <span class="sort-icon ml-2 opacity-30">⇅</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 cursor-pointer hover:bg-gray-100 select-none" data-sort="secteur">
+                            <div class="flex items-center justify-between">
+                                <span>Secteur</span>
+                                <span class="sort-icon ml-2 opacity-30">⇅</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 cursor-pointer hover:bg-gray-100 select-none" data-sort="commercial">
+                            <div class="flex items-center justify-between">
+                                <span>Commercial</span>
+                                <span class="sort-icon ml-2 opacity-30">⇅</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 cursor-pointer hover:bg-gray-100 select-none" data-sort="echeance">
+                            <div class="flex items-center justify-between">
+                                <span>Échéance</span>
+                                <span class="sort-icon ml-2 opacity-30">⇅</span>
+                            </div>
+                        </th>
                         <th class="px-4 py-3">Actions</th>
                     </tr>
                 </thead>
@@ -432,6 +462,7 @@
 <script src="{{ url_for('static', filename='js/api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 <script src="{{ url_for('static', filename='js/performance.js') }}"></script>
+<script src="{{ url_for('static', filename='js/table-sort.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 <script src="{{ url_for('static', filename='js/deal-form.js') }}"></script>

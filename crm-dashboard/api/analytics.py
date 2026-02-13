@@ -120,14 +120,14 @@ def get_sectors():
                 "tableau": []
             }, "error": None})
 
-        # Montants totaux par secteur
-        montants = df_sectors.groupby('secteur')['montant_brut'].sum().sort_values(ascending=True)
+        # Montants totaux par secteur (tri décroissant)
+        montants = df_sectors.groupby('secteur')['montant_brut'].sum().sort_values(ascending=False)
 
         # Paniers moyens par secteur
         paniers = df_sectors.groupby('secteur')['montant_brut'].mean()
 
-        # Top 5 paniers moyens
-        top5_paniers = paniers.sort_values(ascending=False).head(5).sort_values(ascending=True)
+        # Top 5 paniers moyens (tri décroissant)
+        top5_paniers = paniers.sort_values(ascending=False).head(5)
 
         # Nombre de deals par secteur
         nb_deals = df_sectors.groupby('secteur').size()
@@ -149,26 +149,53 @@ def get_sectors():
                 "valeur_ponderee_formatted": format_currency(valeur_ponderee[secteur])
             })
 
-        # Données Chart.js - Montants totaux
+        # Palette de couleurs distinctes pour chaque secteur
+        color_palette = [
+            "rgba(102, 194, 165, 0.7)",  # Turquoise
+            "rgba(252, 141, 98, 0.7)",   # Coral
+            "rgba(141, 160, 203, 0.7)",  # Lavande
+            "rgba(231, 138, 195, 0.7)",  # Rose
+            "rgba(166, 216, 84, 0.7)",   # Vert clair
+            "rgba(255, 217, 47, 0.7)",   # Jaune
+            "rgba(229, 196, 148, 0.7)",  # Beige
+            "rgba(179, 179, 179, 0.7)",  # Gris
+            "rgba(255, 127, 0, 0.7)",    # Orange
+            "rgba(106, 61, 154, 0.7)",   # Violet
+            "rgba(255, 255, 51, 0.7)",   # Jaune vif
+            "rgba(177, 89, 40, 0.7)",    # Marron
+            "rgba(0, 206, 209, 0.7)",    # Turquoise foncé
+            "rgba(255, 105, 180, 0.7)",  # Rose foncé
+            "rgba(34, 139, 34, 0.7)",    # Vert forêt
+        ]
+
+        # Générer couleurs pour montants (répéter si plus de secteurs que de couleurs)
+        bg_colors_montants = [color_palette[i % len(color_palette)] for i in range(len(montants))]
+        border_colors_montants = [c.replace('0.7', '1') for c in bg_colors_montants]
+
+        # Données Chart.js - Montants totaux avec couleurs distinctes
         chart_montants = {
             "labels": montants.index.tolist(),
             "datasets": [{
                 "label": "Montant Total (€)",
                 "data": [round(v, 2) for v in montants.values.tolist()],
-                "backgroundColor": "rgba(59, 130, 246, 0.7)",
-                "borderColor": "rgba(59, 130, 246, 1)",
+                "backgroundColor": bg_colors_montants,
+                "borderColor": border_colors_montants,
                 "borderWidth": 1
             }]
         }
 
-        # Données Chart.js - Top 5 Paniers Moyens
+        # Générer couleurs pour panier moyen
+        bg_colors_panier = [color_palette[i % len(color_palette)] for i in range(len(top5_paniers))]
+        border_colors_panier = [c.replace('0.7', '1') for c in bg_colors_panier]
+
+        # Données Chart.js - Top 5 Paniers Moyens avec couleurs distinctes
         chart_panier_moyen = {
             "labels": top5_paniers.index.tolist(),
             "datasets": [{
                 "label": "Panier Moyen (€)",
                 "data": [round(v, 2) for v in top5_paniers.values.tolist()],
-                "backgroundColor": "rgba(34, 197, 94, 0.7)",
-                "borderColor": "rgba(34, 197, 94, 1)",
+                "backgroundColor": bg_colors_panier,
+                "borderColor": border_colors_panier,
                 "borderWidth": 1
             }]
         }
