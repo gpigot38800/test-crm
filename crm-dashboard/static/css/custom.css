@@ -407,11 +407,13 @@ h3 {
 
 /* Input Fields */
 input[type="text"],
+input[type="number"],
 input[type="date"],
 input[type="search"],
-select {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+select,
+textarea {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--text-primary);
     border-radius: 8px;
     padding: 0.625rem 0.875rem;
@@ -420,11 +422,22 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
     outline: none;
     border-color: var(--accent-cyan);
-    background: var(--bg-surface-hover);
-    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 /* Drop Zone */
